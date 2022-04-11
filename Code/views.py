@@ -106,7 +106,7 @@ def abilities(request,playerid):
 def purchases(request,matchid):
     conn = psycopg2.connect(host="147.175.150.216",database="dota2",user="xlehocky",password=os.getenv("AISPASS"))
     curr = conn.cursor()
-    curr.execute("select * from( select *,ROW_NUMBER() OVER (PARTITION BY x.localized_name ORDER BY x.count desc) as num from ( select heroes.localized_name,heroes.id,items.name, items.id,count(logs.item_id) from matches join matches_players_details as mpd on mpd.match_id = matches.id left join heroes on mpd.hero_id = heroes.id left join purchase_logs as logs on match_player_detail_id = mpd.id join items on logs.item_id = items.id where ((mpd.player_slot >= 128 and not matches.radiant_win) or (mpd.player_slot <= 4 and matches.radiant_win)) and matches.id = "+str(matchid)+" Group by heroes.localized_name,heroes.id,mpd.hero_id,items.name,items.id )x order by x.localized_name desc,x.count desc,x.name) y where y.num <= 5")
+    curr.execute("select * from ( select heroes.localized_name,heroes.id as heroid,items.name, items.id,count(logs.item_id), ROW_NUMBER() OVER (partition by heroes.localized_name order by count(logs.item_id) desc,items.name) as num from matches join matches_players_details as mpd on mpd.match_id = matches.id left join heroes on mpd.hero_id = heroes.id left join purchase_logs as logs on match_player_detail_id = mpd.id join items on logs.item_id = items.id where ((mpd.player_slot >= 128 and not matches.radiant_win) or (mpd.player_slot <= 4 and matches.radiant_win)) and matches.id = "+str(matchid)+" Group by heroes.localized_name,heroes.id,mpd.hero_id,items.name,items.id )x where x.num <= 5 order by x.heroid,x.count desc, x.name")
     data = curr.fetchall()
     heroes = list()
     for row in data:
