@@ -141,13 +141,16 @@ def ability_usage(request,abilityid):
                     losers = {"bucket" : row_2[5], "count" : row_2[6]}
                 else:
                     winners = {"bucket" : row_2[5], "count" : row_2[6]}
-        if({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers,"usage_winners" : winners}) not in heroes:
-            if winners is None:
+        if winners is None:
+            if({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers}) not in heroes:
                 heroes.append({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers})
-            elif losers is None:
+        elif losers is None:
+            if({"id" : row[3], "name" : row[2] ,"usage_winners" : winners}) not in heroes:
                 heroes.append({"id" : row[3], "name" : row[2] ,"usage_winners" : winners})
-            else:
+        else:
+            if({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers,"usage_winners" : winners}) not in heroes:
                 heroes.append({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers,"usage_winners" : winners})
+
     response = {"heroes" : heroes,"id" : abilityid,"name": data[0][1]}
     curr.close()
     conn.close()
