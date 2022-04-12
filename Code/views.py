@@ -121,7 +121,7 @@ def purchases(request,matchid):
                     if {"name" : row_2[2],"id" : row_2[3], "count" : row_2[4]} not in purchases:
                         purchases.append({"name" : row_2[2], "id" : row_2[3], "count" : row_2[4]})
             heroes.append({"id" : row[1], "name" : row[0] ,"top_purchases" : purchases})
-    response = {"heroes" : heroes}
+    response = {"heroes" : heroes,"id": matchid}
     curr.close()
     conn.close()
     return JsonResponse(response,safe = False)
