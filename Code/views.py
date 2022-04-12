@@ -125,3 +125,11 @@ def purchases(request,matchid):
     curr.close()
     conn.close()
     return JsonResponse(response,safe = False)
+
+def ability_usage(request,abilityid):
+    response = {"Ability" : abilityid}
+    return JsonResponse(response,safe = False)
+
+def tower_kills(request):
+    response = {"Placeholder" : None}
+    return JsonResponse(response,safe = False)
