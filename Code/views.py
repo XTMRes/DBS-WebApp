@@ -137,7 +137,7 @@ def ability_usage(request,abilityid):
         winners = None
         for row_2 in data:
             if row[3] == row_2[3]:
-                if (row_2[4] == 'false'):
+                if (not row_2[4]):
                     losers = {"bucket" : row_2[5], "count" : row_2[6]}
                 else:
                     winners = {"bucket" : row_2[5], "count" : row_2[6]}
