@@ -127,7 +127,30 @@ def purchases(request,matchid):
     return JsonResponse(response,safe = False)
 
 def ability_usage(request,abilityid):
-    response = {"Ability" : abilityid}
+    conn = psycopg2.connect(host="147.175.150.216",database="dota2",user="xlehocky",password=os.getenv("AISPASS"))
+    curr = conn.cursor()
+    curr.execute("select * from( select *, row_number() over (partition by z.max,z.heroid order by z.count desc) from ( select *, max(y.count) over (partition by y.heroid, y.winner) from ( select *, count(*) over (partition by x.bucket,x.heroid,x.winner order by x.heroid, x.bucket) from ( select abilities.id,abilities.name,heroes.localized_name,heroes.id as heroid, (mpd.player_slot >= 128 and not matches.radiant_win) or (mpd.player_slot <= 4 and matches.radiant_win) as Winner, case when floor((upgrades.time::float / matches.duration::float)*100) >= 0 and floor((upgrades.time::float / matches.duration::float)*100) < 10 then '0-9' when floor((upgrades.time::float / matches.duration::float)*100) >= 10 and floor((upgrades.time::float / matches.duration::float)*100) < 20 then '10-19' when floor((upgrades.time::float / matches.duration::float)*100) >= 20 and floor((upgrades.time::float / matches.duration::float)*100) < 30 then '20-29' when floor((upgrades.time::float / matches.duration::float)*100) >= 30 and floor((upgrades.time::float / matches.duration::float)*100) < 40 then '30-39' when floor((upgrades.time::float / matches.duration::float)*100) >= 40 and floor((upgrades.time::float / matches.duration::float)*100) < 50 then '40-49' when floor((upgrades.time::float / matches.duration::float)*100) >= 50 and floor((upgrades.time::float / matches.duration::float)*100) < 60 then '50-59' when floor((upgrades.time::float / matches.duration::float)*100) >= 60 and floor((upgrades.time::float / matches.duration::float)*100) < 70 then '60-69' when floor((upgrades.time::float / matches.duration::float)*100) >= 70 and floor((upgrades.time::float / matches.duration::float)*100) < 80 then '70-79' when floor((upgrades.time::float / matches.duration::float)*100) >= 80 and floor((upgrades.time::float / matches.duration::float)*100) < 90 then '80-89' when floor((upgrades.time::float / matches.duration::float)*100) >= 90 and floor((upgrades.time::float / matches.duration::float)*100) < 100 then '90-99' else '100-109' end Bucket from ability_upgrades as upgrades join matches_players_details as mpd on mpd.id = upgrades.match_player_detail_id join matches on matches.id = mpd.match_id join abilities on abilities.id = upgrades.ability_id join heroes on heroes.id = mpd.hero_id where upgrades.ability_id = "+str(abilityid)+" order by matches.id, upgrades.time) x order by count desc ) y group by y.id,y.name,y.localized_name,y.heroid,y.winner,y.bucket,y.count order by count desc ) z order by z.heroid desc, z.count desc ) fin where fin.row_number < 2")
+    data = curr.fetchall()
+    heroes = list()
+    for row in data:
+        losers = None
+        winners = None
+        for row_2 in data:
+            if row[3] == row_2[3]:
+                if (row_2[4] == 'false'):
+                    losers = {"bucket" : row_2[5], "count" : row_2[6]}
+                else:
+                    winners = {"bucket" : row_2[5], "count" : row_2[6]}
+        if({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers,"usage_winners" : winners}) not in heroes:
+            if winners is None:
+                heroes.append({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers})
+            elif losers is None:
+                heroes.append({"id" : row[3], "name" : row[2] ,"usage_winners" : winners})
+            else:
+                heroes.append({"id" : row[3], "name" : row[2] ,"usage_loosers" : losers,"usage_winners" : winners})
+    response = {"heroes" : heroes,"id" : abilityid,"name": data[0][1]}
+    curr.close()
+    conn.close()
     return JsonResponse(response,safe = False)
 
 def tower_kills(request):
