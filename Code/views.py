@@ -157,5 +157,14 @@ def ability_usage(request,abilityid):
     return JsonResponse(response,safe = False)
 
 def tower_kills(request):
-    response = {"Placeholder" : None}
+        conn = psycopg2.connect(host="147.175.150.216",database="dota2",user="xlehocky",password=os.getenv("AISPASS"))
+    curr = conn.cursor()
+    curr.execute("select distinct fin.heroid,fin.localized_name,max(fin.count) over (partition by fin.localized_name) from ( select distinct z.heroid,z.localized_name, count(*) over (partition by z.localized_name,z.id, z.dif) from( select distinct y.id,y.time,y.heroid,y.localized_name, (y.rownum-y.hero_rownum) dif from( select *, row_number() over (partition by x.id order by x.time desc) rownum, row_number() over (partition by x.heroid,x.id order by x.time desc) hero_rownum from( select heroes.id as heroid, heroes.localized_name, matches.id, game_objectives.time, game_objectives.subtype from game_objectives join matches_players_details as mpd on mpd.id = game_objectives.match_player_detail_id_1 join heroes on mpd.hero_id = heroes.id join matches on matches.id = mpd.match_id where game_objectives.subtype like 'CHAT_MESSAGE_TOWER_KILL' ) x ) y ) z ) fin order by max desc, fin.localized_name")
+    data = curr.fetchall()
+    heroes = list()
+    for row in data:
+        heroes.append{"id" : row[0], "name" : row[1], "tower_kills" : row[2]}
+    response = {"heroes" : heroes}
+    curr.close()
+    conn.close()
     return JsonResponse(response,safe = False)
