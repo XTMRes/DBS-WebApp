@@ -1,5 +1,7 @@
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.core import serializers
+from modelapp.models import *
 
 import os
 import psycopg2
@@ -167,4 +169,9 @@ def tower_kills(request):
     response = {"heroes" : heroes}
     curr.close()
     conn.close()
+    return JsonResponse(response,safe = False)
+
+def patches_orm(request):
+    qs = Patches.objects.using('dota2').all()
+    response = serializers.serialize('json', qs)
     return JsonResponse(response,safe = False)

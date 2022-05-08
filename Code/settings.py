@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'modelapp',
 ]
 
 MIDDLEWARE = [
@@ -56,9 +57,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Code.wsgi.application'
 
 DATABASES = {
-    'default': {
-	  'ENGINE': 'django.db.backends.sqlite3',
-      'NAME': BASE_DIR / 'db.sqlite3',
+    'default': {},
+    'dota2': {
+        'ENGINE': 'django.db.backends.postgresql', 
+        'NAME': 'dota2',
+        'USER': 'xlehocky',
+        'PASSWORD': os.getenv("AISPASS"),
+        'HOST': '147.175.150.216',  
+        'PORT': '5432',
     }
 }
 
